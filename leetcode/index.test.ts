@@ -4,6 +4,8 @@ import * as addTwoNumberSolution2 from "./2-add-two-number/solution2";
 import * as addTwoNumbers from "./2-add-two-number/testUtils";
 import * as longestSubstringWithoutRepeatingCharacters from "./longest-substring-without-repeating-characters/testUtils.";
 import * as reversesubstringsbetweeneachpairofparentheses from "./reverse-substrings-between-each-pair-of-parentheses/testUtils";
+import * as generateParentheses from './22-generate-parentheses/testUtils';
+import * as zigzagCoversion from './6-zigzag-conversion/testUtils';
 
 describe('reverse-substrings-between-each-pair-of-parentheses', () =>{
     reversesubstringsbetweeneachpairofparentheses.runTests();
@@ -23,4 +25,12 @@ describe('longest-substring-without-repeating-characters', () => {
 
 describe('longest-substring-without-repeating-characters-optimal', () => {
     longestSubstringWithoutRepeatingCharacters.runTestsOptimalSolution();
+})
+
+describe('generate-parentheses', () => {
+    generateParentheses.runTests();
+})
+
+describe('zigzag-conversion/testUtils', () => {
+    zigzagCoversion.runTests();
 })
