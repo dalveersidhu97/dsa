@@ -15,6 +15,23 @@ class RedBlackNode {
 class RedBlackTree {
     root?: RedBlackNode = undefined;
 
+    delete(key: number) {
+
+    }
+
+    search(key: number){
+        if (!this.root) return console.log('Tree is empty');
+        let currentNode: RedBlackNode | undefined = this.root;
+        while(currentNode && currentNode.value !== key) {
+            if (key < currentNode.value){
+                currentNode = currentNode.left;
+            }else {
+                currentNode = currentNode.right;
+            }
+        }
+        return currentNode;
+    }
+
     insert(key: number){
         if (this.root === undefined) {
             this.root = new RedBlackNode(key, 'Black');
@@ -204,3 +221,6 @@ redBlackTree.insert(3.5);
 redBlackTree.insert(3.2);
 
 redBlackTree.print();
+
+const searchedNode = redBlackTree.search(5);
+console.log({ searchedNode });
