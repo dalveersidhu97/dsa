@@ -6,7 +6,7 @@ class RedBlackNode {
     color: 'Red' | 'Black' = 'Red';
     space?: number;
 
-    constructor(private val: number, color: 'Red' | 'Black' = 'Red') {
+    constructor(val: number, color: 'Red' | 'Black' = 'Red') {
         this.value = val;
         this.color = color;
     }
