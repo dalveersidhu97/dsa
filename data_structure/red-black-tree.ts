@@ -16,7 +16,154 @@ class RedBlackTree {
     root?: RedBlackNode = undefined;
 
     delete(key: number) {
+        console.log('Delete', key);
+        let nodeToDelete = this.search(key);
+        if (!nodeToDelete) return console.log(`${key} not found!`);
+        const inOrderSuccessor = this.getInOrderSuccessor(nodeToDelete);
 
+        if (inOrderSuccessor === this.root) {
+            this.root = undefined;
+            return this.print();
+        }
+        
+        if (nodeToDelete !== inOrderSuccessor) {
+            nodeToDelete.value = inOrderSuccessor.value
+            nodeToDelete = inOrderSuccessor;
+        }
+
+        if (nodeToDelete.left) {
+            const tmp = nodeToDelete.value;
+            nodeToDelete.value = nodeToDelete.left.value;
+            nodeToDelete.left.value = tmp;
+            nodeToDelete = nodeToDelete.left;
+        }
+
+        const deleteNode = (nodeToDelete: RedBlackNode) => {
+            const nodeToDeleteSide = nodeToDelete.parent!.left === nodeToDelete ? 'left' : 'right';
+            nodeToDelete.parent![nodeToDeleteSide] = undefined;
+        }
+
+        // Case 1: if node is red -> Just delete it and exit
+        if (nodeToDelete.color ==='Red') {
+            console.log(`Case 1: node to delete is ${nodeToDelete.value}`)
+            deleteNode(nodeToDelete);
+            this.print();
+            return;
+        }
+
+        // Node is Double Black
+        let DB: RedBlackNode | undefined = nodeToDelete;
+
+        while(DB) {
+            const sibling = this.getSibling(DB);
+            const isSiblingBlack = !sibling || sibling.color === 'Black';
+            const siblingChildColor: { left: 'Red' | 'Black', right: 'Red' | 'Black' } = { 
+                left: (!sibling?.left || sibling.left.color === 'Black') ? 'Black' : 'Red',
+                right: (!sibling?.right || sibling.right.color === 'Black') ? 'Black' : 'Red'
+            }
+
+            // Case 2: if DB is root -> just remove DB and exit
+            if ( this.root === DB) {
+                console.log(`Case 2: DB is ${DB.value}`)
+                DB = undefined;
+                break;
+            }
+            if (!sibling) {
+                throw new Error(`${DB.value} is black but has no sibling`);
+            }
+            // Case 3: if node is black, sibling is black and sibling's both children are black
+            if (isSiblingBlack && siblingChildColor.left === 'Black' && siblingChildColor.right === 'Black') {
+                console.log(`Case 3: DB is ${DB.value}`)
+                sibling.color = 'Red';
+                if (DB.parent!.color === 'Black') {
+                    DB = DB.parent!;
+                }else {
+                    DB.parent!.color = 'Black';
+                    DB = undefined;
+                }
+            }
+            // Case 4: if node is black, sibling is red
+            else if(sibling.color === 'Red') {
+                console.log(`Case 4: DB is ${DB.value}`)
+                sibling.color = sibling.parent!.color;
+                sibling.parent!.color = 'Red';
+                this.rotate(sibling);
+            }else if(sibling && sibling.color === 'Black') {
+                const DBSide = DB.parent?.left === DB ? 'left' : 'right';
+                const DBFarSide = DB.parent?.left === DB ? 'right' : 'left';
+                // Case 5: if node is black, sibling is black, sibling's near nephew is red and far nephew is black
+                if(sibling[DBSide] && siblingChildColor[DBSide] === 'Red' && siblingChildColor[DBFarSide] === 'Black') {
+                    console.log(`Case 5: DB is ${DB.value}`)
+                    sibling.color = 'Red';
+                    sibling[DBSide].color = 'Black';
+                    this.rotate(sibling[DBSide]);
+                }
+                // Case 6: if node is black, sibling is black, sibling's near nephey is black and far nephew is red
+                else if(sibling[DBFarSide] && siblingChildColor[DBFarSide] === 'Red') {
+                    console.log(`Case 6: DB is ${DB.value}`)
+                    if (sibling.parent && sibling.parent?.color !== 'Black') {
+                        sibling.parent.color = 'Black';
+                        sibling.color = 'Red';
+                    }
+                    this.rotate(sibling);
+                    sibling[DBFarSide].color = 'Black';
+                    DB = undefined;
+                }
+            }
+        }
+        
+        deleteNode(nodeToDelete);
+        this.print();
+
+    }
+
+    isTreeBalanced() {
+        if (!this.root) return { isBalanced: true, numBlack: 0 };
+
+        let requiredNumBlacks = 0;
+        let curr: RedBlackNode | undefined = this.root;
+        while(curr) {
+            if (curr.color === 'Black') requiredNumBlacks++;
+            curr = curr.left;
+        }
+
+        let numberOfBlacks: number = 1;
+        const stack = [{ node: this.root, leftProcessed: false, rightProcessed: false }];
+    
+        while(stack.length) {
+            const last = stack[stack.length - 1];
+            if (!last.node?.left && !last.node?.right) {
+                if (numberOfBlacks !== requiredNumBlacks) return { isBalanced: false, numBlack: numberOfBlacks, requiredNumBlacks, path: stack.map(node => node.node.value).join(' -> ') };
+            }
+            if (!last.leftProcessed) {
+                if (last.node?.left?.color === 'Black')
+                    numberOfBlacks++;
+                last.leftProcessed = true;
+                last.node?.left && stack.push({ node: last.node.left, leftProcessed: false, rightProcessed: false });
+            }else if(!last.rightProcessed) {
+                if (last.node?.right?.color === 'Black'){
+                    numberOfBlacks++;
+                }
+                last.rightProcessed = true;
+                last.node?.right && stack.push({ node: last.node.right, leftProcessed: false, rightProcessed: false });
+            }else {
+                const popped = stack.pop();
+                if (popped?.node?.color === 'Black') {
+                    numberOfBlacks --;
+                }
+            }
+        }
+        return { isBalanced: true, numBlack: requiredNumBlacks };
+    }
+
+    getInOrderSuccessor(node: RedBlackNode) {
+        let inOrderSuccessor = node;
+        let currentNode = inOrderSuccessor.left;
+        while(currentNode){
+            inOrderSuccessor = currentNode;
+            currentNode = currentNode.right;
+        }
+        return inOrderSuccessor;
     }
 
     search(key: number){
@@ -140,6 +287,8 @@ class RedBlackTree {
     }
 
     print() {
+        console.log(' - - - - - - - - - - - - - - - - - - - - - - PRINT - - - - - - - - - - - - - - - - - - - ');
+        console.log('');
         if (!this.root) {
             console.log('Tree is empty');
             return;
@@ -203,6 +352,8 @@ class RedBlackTree {
             }
             console.log(line)
         }
+        console.log('');
+        console.log(' - - - - - - - - - - - - - - - - - - - - - - PRINT END - - - - - - - - - - - - - - - - - ');
     } 
 }
 
@@ -219,8 +370,33 @@ redBlackTree.insert(-3);
 redBlackTree.insert(4.5);
 redBlackTree.insert(3.5);
 redBlackTree.insert(3.2);
+redBlackTree.insert(1.2);
 
 redBlackTree.print();
 
-const searchedNode = redBlackTree.search(5);
-console.log({ searchedNode });
+const balanced = redBlackTree.isTreeBalanced();
+console.log(redBlackTree.isTreeBalanced());
+redBlackTree.delete(3);
+console.log(redBlackTree.isTreeBalanced());
+redBlackTree.delete(4.5);
+console.log(redBlackTree.isTreeBalanced());
+redBlackTree.delete(4);
+console.log(redBlackTree.isTreeBalanced());
+redBlackTree.delete(7);
+console.log(redBlackTree.isTreeBalanced());
+redBlackTree.delete(1.2);
+console.log(redBlackTree.isTreeBalanced());
+redBlackTree.delete(2);
+console.log(redBlackTree.isTreeBalanced());
+redBlackTree.delete(1);
+console.log(redBlackTree.isTreeBalanced());
+redBlackTree.delete(-3);
+console.log(redBlackTree.isTreeBalanced());
+redBlackTree.delete(3.5);
+console.log(redBlackTree.isTreeBalanced());
+redBlackTree.delete(3.2);
+console.log(redBlackTree.isTreeBalanced());
+redBlackTree.delete(5);
+console.log(redBlackTree.isTreeBalanced());
+redBlackTree.delete(-5);
+console.log(redBlackTree.isTreeBalanced());
