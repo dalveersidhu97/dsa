@@ -22,7 +22,8 @@ class RedBlackTree {
         const inOrderSuccessor = this.getInOrderSuccessor(nodeToDelete);
 
         if (inOrderSuccessor === this.root) {
-            this.root = undefined;
+            const leftOrRight = inOrderSuccessor.left || inOrderSuccessor.right;
+            this.root = leftOrRight; // or undefined
             return this.print();
         }
         
@@ -31,11 +32,10 @@ class RedBlackTree {
             nodeToDelete = inOrderSuccessor;
         }
 
-        if (nodeToDelete.left) {
-            const tmp = nodeToDelete.value;
-            nodeToDelete.value = nodeToDelete.left.value;
-            nodeToDelete.left.value = tmp;
-            nodeToDelete = nodeToDelete.left;
+        if (nodeToDelete.left || nodeToDelete.right) {
+            const leftOrRight = nodeToDelete.left! || nodeToDelete.right!;
+            nodeToDelete.value = leftOrRight.value;
+            nodeToDelete = leftOrRight;
         }
 
         const deleteNode = (nodeToDelete: RedBlackNode) => {
@@ -287,12 +287,12 @@ class RedBlackTree {
     }
 
     print() {
-        console.log(' - - - - - - - - - - - - - - - - - - - - - - PRINT - - - - - - - - - - - - - - - - - - - ');
         console.log('');
         if (!this.root) {
             console.log('Tree is empty');
             return;
         }
+        console.log(' - - - - - - - - - - - - - - - - - - - - - - PRINT - - - - - - - - - - - - - - - - - - - ');
         let offset = 8;
         let step = 8;
         
@@ -371,6 +371,7 @@ redBlackTree.insert(4.5);
 redBlackTree.insert(3.5);
 redBlackTree.insert(3.2);
 redBlackTree.insert(1.2);
+redBlackTree.insert(20);
 
 redBlackTree.print();
 
@@ -399,4 +400,6 @@ console.log(redBlackTree.isTreeBalanced());
 redBlackTree.delete(5);
 console.log(redBlackTree.isTreeBalanced());
 redBlackTree.delete(-5);
+console.log(redBlackTree.isTreeBalanced());
+redBlackTree.delete(20);
 console.log(redBlackTree.isTreeBalanced());
